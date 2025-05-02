@@ -31,8 +31,8 @@ where
     let mut last_move: Option<(usize, usize)> = None;
 
     loop {
-        game.print_board();
         for player in [&mut p1, &mut p2] {
+            game.print_board();
             let msg = ServerToPlayer { last_move };
             let txt = serde_json::to_string(&msg).unwrap();
             player.send(Message::Text(txt.into())).await.unwrap();
@@ -40,7 +40,7 @@ where
             let recv = player.next().await.unwrap().unwrap();
             if let Message::Text(text) = recv {
                 let m: PlayerToServer = serde_json::from_str(&text).unwrap();
-                match game.play(m.mv.0, m.mv.1) {
+                match game.play(m.coordinates.0, m.coordinates.1) {
                     Ok(_) => {}
                     Err(err) => {
                         player
@@ -50,7 +50,7 @@ where
                         return;
                     }
                 }
-                last_move = Some(m.mv);
+                last_move = Some(m.coordinates);
             }
 
             if let Ok(winner) = game.check_winner() {

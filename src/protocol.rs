@@ -8,5 +8,5 @@ pub struct ServerToPlayer {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct PlayerToServer {
     #[serde(rename = "move")]
-    pub mv: (usize, usize),
+    pub coordinates: (usize, usize),
 }

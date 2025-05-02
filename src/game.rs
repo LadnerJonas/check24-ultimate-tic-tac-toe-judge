@@ -204,7 +204,7 @@ impl UltimateTicTacToe {
                         });
                     }
                     line.push_str(&format!(
-                        " {}│{}│{} ",
+                        "{}│{}│{}",
                         small_cells[0], small_cells[1], small_cells[2]
                     ));
                     if big_col < 2 {
@@ -214,13 +214,14 @@ impl UltimateTicTacToe {
                 rows.push(line);
             }
             if big_row < 2 {
-                rows.push("━━━┿━━━┿━━━╋━━━┿━━━┿━━━╋━━━┿━━━┿━━━".to_string());
+                rows.push("━┿━┿━╋━┿━┿━╋━┿━┿━━━".to_string());
             }
         }
 
         for row in rows {
             println!("{}", row);
         }
+        println!();
     }
 }
 
