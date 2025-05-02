@@ -29,6 +29,12 @@ pub struct UltimateTicTacToe {
     next_small_board: Option<usize>, // 0–8 or None
 }
 
+impl Default for UltimateTicTacToe {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl UltimateTicTacToe {
     pub fn new() -> Self {
         Self {
@@ -248,11 +254,11 @@ fn set_cell(board: &mut u32, idx: usize, value: u8) {
 
 impl fmt::Debug for UltimateTicTacToe {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Global State: {:?}\n", self.global_state)?;
+        writeln!(f, "Global State: {:?}", self.global_state)?;
         for (i, &state) in self.small_board_state.iter().enumerate() {
-            write!(f, "Small Board {}: {:?}\n", i, state)?;
+            writeln!(f, "Small Board {}: {:?}", i, state)?;
         }
-        write!(f, "Next Board: {:?}\n", self.next_small_board)?;
-        write!(f, "Current Player: {:?}\n", self.current_player)
+        writeln!(f, "Next Board: {:?}", self.next_small_board)?;
+        writeln!(f, "Current Player: {:?}", self.current_player)
     }
 }

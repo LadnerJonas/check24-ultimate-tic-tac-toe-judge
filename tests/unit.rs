@@ -23,7 +23,7 @@ fn test_invalid_move_on_won_board() {
     // Simulate board 0 being won
     assert!(board.play(0, 0).is_ok());
     board.small_board_state[0] = BoardState::Won(Player::X);
-    assert!(!board.play(0, 1).is_ok()); // invalid move into won board
+    assert!(board.play(0, 1).is_err()); // invalid move into won board
 }
 
 #[test]
