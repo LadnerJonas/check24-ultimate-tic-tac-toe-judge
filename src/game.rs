@@ -15,15 +15,15 @@ impl fmt::Display for Player {
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
-enum BoardState {
+pub enum BoardState {
     InProgress,
     Won(Player),
     Draw,
 }
 
 pub struct UltimateTicTacToe {
-    small_boards: [u32; 9],             // 9 boards × 9 cells × 2 bits = 162 bits
-    small_board_state: [BoardState; 9], // track win/draw status
+    small_boards: [u32; 9], // 9 boards × 9 cells × 2 bits = 162 bits
+    pub small_board_state: [BoardState; 9], // track win/draw status
     global_state: BoardState,
     current_player: Player,
     next_small_board: Option<usize>, // 0–8 or None
@@ -214,7 +214,7 @@ impl UltimateTicTacToe {
                 rows.push(line);
             }
             if big_row < 2 {
-                rows.push("━┿━┿━╋━┿━┿━╋━┿━┿━━━".to_string());
+                rows.push("━┿━┿━╋━┿━┿━╋━┿━┿━".to_string());
             }
         }
 
