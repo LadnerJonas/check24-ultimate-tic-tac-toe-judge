@@ -1,4 +1,5 @@
 use futures_util::{SinkExt, StreamExt};
+use rand::random;
 use tokio::net::TcpListener;
 use tokio_tungstenite::{accept_async, tungstenite::Message};
 
@@ -7,23 +8,29 @@ use crate::{Player, protocol::*};
 
 pub async fn start(addr: &str) {
     let listener = TcpListener::bind(addr).await.unwrap();
+    println!("Listening on {addr}, waiting for 2 players...");
+
+    let (s1, _) = listener.accept().await.unwrap();
+    let mut ws1 = accept_async(s1).await.unwrap();
+    println!("Player 1 connected");
+
+    let (s2, _) = listener.accept().await.unwrap();
+    let mut ws2 = accept_async(s2).await.unwrap();
+    println!("Player 2 connected");
+
     loop {
-        println!("Listening on {addr}, waiting for 2 players...");
-
-        let (s1, _) = listener.accept().await.unwrap();
-        let ws1 = accept_async(s1).await.unwrap();
-        println!("Player 1 connected");
-
-        let (s2, _) = listener.accept().await.unwrap();
-        let ws2 = accept_async(s2).await.unwrap();
-        println!("Player 2 connected");
-
         println!("Both players connected. Starting game.");
-        run_game(ws1, ws2).await;
+
+        // Randomly swap players
+        if random::<bool>() {
+            run_game(&mut ws1, &mut ws2, false).await;
+        } else {
+            run_game(&mut ws2, &mut ws1, true).await;
+        }
     }
 }
 
-async fn run_game<S>(mut p1: S, mut p2: S)
+async fn run_game<S>(mut p1: S, mut p2: S, swapped_players: bool)
 where
     S: StreamExt<Item = Result<Message, tokio_tungstenite::tungstenite::Error>>
         + SinkExt<Message, Error = tokio_tungstenite::tungstenite::Error>
@@ -66,11 +73,39 @@ where
                 winner = Some(winner_of_game);
                 break;
             }
+
+            if let Err("Draw") = game.check_winner() {
+                println!("Draw");
+                return;
+            }
         }
     }
-    p1.send(Message::Text(format!("Winner: {}", winner.unwrap()).into()))
-        .await
-        .unwrap();
+    if swapped_players {
+        winner = match winner {
+            Some(Player::X) => Some(Player::O),
+            Some(Player::O) => Some(Player::X),
+            None => None,
+        };
+    }
+    println!(
+        "Winner: {}",
+        match winner.unwrap() {
+            Player::X => "Player 1",
+            Player::O => "Player 2",
+        }
+    );
+    p1.send(Message::Text(
+        format!(
+            "Winner: {}",
+            match winner.unwrap() {
+                Player::X => "X",
+                Player::O => "O",
+            }
+        )
+        .into(),
+    ))
+    .await
+    .unwrap();
     p2.send(Message::Text(format!("Winner: {}", winner.unwrap()).into()))
         .await
         .unwrap();
