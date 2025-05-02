@@ -31,6 +31,7 @@ where
     let mut last_move: Option<(usize, usize)> = None;
 
     loop {
+        game.print_board();
         for player in [&mut p1, &mut p2] {
             let msg = ServerToPlayer { last_move };
             let txt = serde_json::to_string(&msg).unwrap();
@@ -39,17 +40,20 @@ where
             let recv = player.next().await.unwrap().unwrap();
             if let Message::Text(text) = recv {
                 let m: PlayerToServer = serde_json::from_str(&text).unwrap();
-                if !game.play_move(m.mv) {
-                    player
-                        .send(Message::Text("Invalid move".to_string().into()))
-                        .await
-                        .unwrap();
-                    return;
+                match game.play(m.mv.0, m.mv.1) {
+                    Ok(_) => {}
+                    Err(err) => {
+                        player
+                            .send(Message::Text(format!("Invalid move: {}", err).into()))
+                            .await
+                            .unwrap();
+                        return;
+                    }
                 }
                 last_move = Some(m.mv);
             }
 
-            if let Some(winner) = game.check_winner() {
+            if let Ok(winner) = game.check_winner() {
                 player
                     .send(Message::Text(format!("{winner} wins").into()))
                     .await
