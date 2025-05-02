@@ -3,22 +3,24 @@ use tokio::net::TcpListener;
 use tokio_tungstenite::{accept_async, tungstenite::Message};
 
 use crate::game::UltimateTicTacToe;
-use crate::protocol::*;
+use crate::{Player, protocol::*};
 
 pub async fn start(addr: &str) {
     let listener = TcpListener::bind(addr).await.unwrap();
-    println!("Listening on {addr}, waiting for 2 players...");
+    loop {
+        println!("Listening on {addr}, waiting for 2 players...");
 
-    let (s1, _) = listener.accept().await.unwrap();
-    let ws1 = accept_async(s1).await.unwrap();
-    println!("Player 1 connected");
+        let (s1, _) = listener.accept().await.unwrap();
+        let ws1 = accept_async(s1).await.unwrap();
+        println!("Player 1 connected");
 
-    let (s2, _) = listener.accept().await.unwrap();
-    let ws2 = accept_async(s2).await.unwrap();
-    println!("Player 2 connected");
+        let (s2, _) = listener.accept().await.unwrap();
+        let ws2 = accept_async(s2).await.unwrap();
+        println!("Player 2 connected");
 
-    println!("Both players connected. Starting game.");
-    run_game(ws1, ws2).await;
+        println!("Both players connected. Starting game.");
+        run_game(ws1, ws2).await;
+    }
 }
 
 async fn run_game<S>(mut p1: S, mut p2: S)
@@ -30,7 +32,9 @@ where
     let mut game = UltimateTicTacToe::new();
     let mut last_move: Option<(usize, usize)> = None;
 
-    loop {
+    let mut winner: Option<Player> = None;
+
+    while winner.is_none() {
         for player in [&mut p1, &mut p2] {
             game.print_board();
             let msg = ServerToPlayer { last_move };
@@ -47,19 +51,27 @@ where
                             .send(Message::Text(format!("Invalid move: {}", err).into()))
                             .await
                             .unwrap();
-                        return;
+
+                        winner = match game.current_player {
+                            Player::X => Some(Player::O),
+                            Player::O => Some(Player::X),
+                        };
+                        break;
                     }
                 }
                 last_move = Some(m.coordinates);
             }
 
-            if let Ok(winner) = game.check_winner() {
-                player
-                    .send(Message::Text(format!("{winner} wins").into()))
-                    .await
-                    .unwrap();
-                return;
+            if let Ok(winner_of_game) = game.check_winner() {
+                winner = Some(winner_of_game);
+                break;
             }
         }
     }
+    p1.send(Message::Text(format!("Winner: {}", winner.unwrap()).into()))
+        .await
+        .unwrap();
+    p2.send(Message::Text(format!("Winner: {}", winner.unwrap()).into()))
+        .await
+        .unwrap();
 }

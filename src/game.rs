@@ -25,7 +25,7 @@ pub struct UltimateTicTacToe {
     small_boards: [u32; 9], // 9 boards × 9 cells × 2 bits = 162 bits
     pub small_board_state: [BoardState; 9], // track win/draw status
     global_state: BoardState,
-    current_player: Player,
+    pub current_player: Player,
     next_small_board: Option<usize>, // 0–8 or None
 }
 
@@ -189,9 +189,9 @@ impl UltimateTicTacToe {
         let mut rows = vec![];
 
         print!("  ");
-        for r in 0..=8{
+        for r in 0..=8 {
             print!("{}", r);
-            if r < 8{
+            if r < 8 {
                 print!(" ");
             }
         }
@@ -230,9 +230,8 @@ impl UltimateTicTacToe {
         let rows_numb = [0, 1, 2, 0, 3, 4, 5, 0, 6, 7, 8];
         let mut i = 0;
         for row in rows {
-            println!("{} {}", rows_numb[i] ,row);
+            println!("{} {}", rows_numb[i], row);
             i += 1;
-
         }
         println!();
     }
