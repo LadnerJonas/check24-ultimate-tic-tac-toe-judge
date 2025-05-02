@@ -188,6 +188,15 @@ impl UltimateTicTacToe {
     pub fn print_board(&self) {
         let mut rows = vec![];
 
+        print!("  ");
+        for r in 0..=8{
+            print!("{}", r);
+            if r < 8{
+                print!(" ");
+            }
+        }
+        println!();
+
         for big_row in 0..3 {
             for small_row in 0..3 {
                 let mut line = String::new();
@@ -218,8 +227,12 @@ impl UltimateTicTacToe {
             }
         }
 
+        let rows_numb = [0, 1, 2, 0, 3, 4, 5, 0, 6, 7, 8];
+        let mut i = 0;
         for row in rows {
-            println!("{}", row);
+            println!("{} {}", rows_numb[i] ,row);
+            i += 1;
+
         }
         println!();
     }
