@@ -22,7 +22,7 @@ pub enum BoardState {
 }
 
 pub struct UltimateTicTacToe {
-    small_boards: [u32; 9], // 9 boards × 9 cells × 2 bits = 162 bits
+    pub small_boards: [u32; 9], // 9 boards × 9 cells × 2 bits = 162 bits
     pub small_board_state: [BoardState; 9], // track win/draw status
     global_state: BoardState,
     pub current_player: Player,

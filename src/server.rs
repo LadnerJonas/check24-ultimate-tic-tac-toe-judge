@@ -44,7 +44,11 @@ where
     while winner.is_none() {
         for player in [&mut p1, &mut p2] {
             game.print_board();
-            let msg = ServerToPlayer { last_move };
+            let msg = ServerToPlayer {
+                last_move,
+                player: game.current_player as u8,
+                board_state: ServerToPlayer::decode_boards(game.small_boards),
+            };
             let txt = serde_json::to_string(&msg).unwrap();
             player.send(Message::Text(txt.into())).await.unwrap();
 
