@@ -1,13 +1,15 @@
 #[macro_use]
 extern crate rocket;
 use check24_ultimate_tic_tac_toe_judge::protocol::ServerToPlayer;
+use check24_ultimate_tic_tac_toe_judge::team2::test_clients;
 use dashmap::DashMap;
 use rand::Rng;
 use rocket::State;
 use rocket::serde::{Deserialize, Serialize, json::Json};
+use rocket_cors::{Cors, CorsOptions};
 use std::sync::Arc;
 
-use check24_ultimate_tic_tac_toe_judge::{BoardState, Player, UltimateTicTacToe};
+use check24_ultimate_tic_tac_toe_judge::{BoardState, UltimateTicTacToe};
 
 type LobbyToGameMap = Arc<DashMap<u32, UltimateTicTacToe>>;
 
@@ -121,9 +123,13 @@ fn make_move(
 
 #[launch]
 fn rocket() -> _ {
+    // test_clients();
     let lobby_to_game_map: LobbyToGameMap = Arc::new(DashMap::new());
-    rocket::build().manage(lobby_to_game_map).mount(
-        "/",
-        routes![get_lobbies, create_game, get_game_state, make_move],
-    )
+    rocket::build()
+        .attach(CorsOptions::default().to_cors().unwrap())
+        .manage(lobby_to_game_map)
+        .mount(
+            "/",
+            routes![get_lobbies, create_game, get_game_state, make_move],
+        )
 }

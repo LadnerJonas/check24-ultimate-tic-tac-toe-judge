@@ -100,7 +100,7 @@ impl UltimateTicTacToe {
             Player::O => Player::X,
         };
 
-        self.last_move = Some((small_board as u8, cell_idx as u8));
+        self.last_move = Some((small_board, cell_idx));
 
         Ok(())
     }

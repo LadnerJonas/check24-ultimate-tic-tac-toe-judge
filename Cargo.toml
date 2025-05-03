@@ -13,3 +13,4 @@ tungstenite = "0.26.2"
 rand = "0.9.1"
 rocket = { version = "0.5.1", features = ["json"] }
 dashmap = "6.1.0"
+rocket_cors = "0.6.0"
