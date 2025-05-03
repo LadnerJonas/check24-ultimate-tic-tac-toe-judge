@@ -36,7 +36,7 @@ where
         + SinkExt<Message, Error = tokio_tungstenite::tungstenite::Error>
         + Unpin,
 {
-    let mut game = UltimateTicTacToe::new();
+    let mut game = UltimateTicTacToe::new(String::new());
     let mut last_move: Option<(usize, usize)> = None;
 
     let mut winner: Option<Player> = None;
@@ -55,7 +55,7 @@ where
             let recv = player.next().await.unwrap().unwrap();
             if let Message::Text(text) = recv {
                 let m: PlayerToServer = serde_json::from_str(&text).unwrap();
-                match game.play(m.coordinates.0, m.coordinates.1) {
+                match game.play(m.coordinates.0 as u8, m.coordinates.1 as u8) {
                     Ok(_) => {}
                     Err(err) => {
                         player

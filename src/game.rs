@@ -1,4 +1,4 @@
-use std::fmt;
+use std::{fmt, u8};
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum Player {
@@ -24,29 +24,33 @@ pub enum BoardState {
 pub struct UltimateTicTacToe {
     pub small_boards: [u32; 9], // 9 boards × 9 cells × 2 bits = 162 bits
     pub small_board_state: [BoardState; 9], // track win/draw status
-    global_state: BoardState,
+    pub global_state: BoardState,
     pub current_player: Player,
-    next_small_board: Option<usize>, // 0–8 or None
+    next_small_board: Option<u8>, // 0–8 or None
+    pub name: String,
+    pub last_move: Option<(u8, u8)>,
 }
 
 impl Default for UltimateTicTacToe {
     fn default() -> Self {
-        Self::new()
+        Self::new(String::new())
     }
 }
 
 impl UltimateTicTacToe {
-    pub fn new() -> Self {
+    pub fn new(name: String) -> Self {
         Self {
             small_boards: [0; 9],
             small_board_state: [BoardState::InProgress; 9],
             global_state: BoardState::InProgress,
             current_player: Player::X,
             next_small_board: None,
+            name,
+            last_move: None,
         }
     }
 
-    pub fn play(&mut self, global_row: usize, global_col: usize) -> Result<(), &'static str> {
+    pub fn play(&mut self, global_row: u8, global_col: u8) -> Result<(), &'static str> {
         if global_row >= 9 || global_col >= 9 {
             return Err("Invalid coordinates");
         }
@@ -55,27 +59,29 @@ impl UltimateTicTacToe {
         let cell_idx = (global_row % 3) * 3 + (global_col % 3);
 
         if let Some(forced) = self.next_small_board {
-            if forced != small_board && self.small_board_state[forced] == BoardState::InProgress {
+            if forced != small_board
+                && self.small_board_state[forced as usize] == BoardState::InProgress
+            {
                 return Err("Must play in the forced small board");
             }
         }
 
-        if self.small_board_state[small_board] != BoardState::InProgress {
+        if self.small_board_state[small_board as usize] != BoardState::InProgress {
             return Err("This small board is closed");
         }
 
-        if get_cell(self.small_boards[small_board], cell_idx) != 0 {
+        if get_cell(self.small_boards[small_board as usize], cell_idx) != 0 {
             return Err("Cell is already taken");
         }
 
         set_cell(
-            &mut self.small_boards[small_board],
+            &mut self.small_boards[small_board as usize],
             cell_idx,
             self.current_player as u8,
         );
 
-        let board = self.small_boards[small_board];
-        self.small_board_state[small_board] = Self::check_board(board);
+        let board = self.small_boards[small_board as usize];
+        self.small_board_state[small_board as usize] = Self::check_board(board);
 
         let meta_board = self.small_board_state.map(|s| match s {
             BoardState::Won(p) => p as u8,
@@ -84,7 +90,7 @@ impl UltimateTicTacToe {
         self.global_state = Self::check_board_mask(&meta_board);
 
         let next = cell_idx;
-        self.next_small_board = match self.small_board_state[next] {
+        self.next_small_board = match self.small_board_state[next as usize] {
             BoardState::InProgress => Some(next),
             _ => None,
         };
@@ -94,11 +100,13 @@ impl UltimateTicTacToe {
             Player::O => Player::X,
         };
 
+        self.last_move = Some((small_board as u8, cell_idx as u8));
+
         Ok(())
     }
 
     fn check_board(board: u32) -> BoardState {
-        const LINES: [[usize; 3]; 8] = [
+        const LINES: [[u8; 3]; 8] = [
             [0, 1, 2],
             [3, 4, 5],
             [6, 7, 8], // rows
@@ -243,11 +251,11 @@ impl UltimateTicTacToe {
     }
 }
 
-fn get_cell(board: u32, idx: usize) -> u8 {
+fn get_cell(board: u32, idx: u8) -> u8 {
     ((board >> (idx * 2)) & 0b11) as u8
 }
 
-fn set_cell(board: &mut u32, idx: usize, value: u8) {
+fn set_cell(board: &mut u32, idx: u8, value: u8) {
     let mask = !(0b11 << (idx * 2));
     *board = (*board & mask) | ((value as u32) << (idx * 2));
 }
