@@ -24,7 +24,7 @@ struct CreateGameResponse {
     player: u8,
 }
 
-#[put("/api/create_game", data = "<request>")]
+#[post("/api/create_game", data = "<request>")]
 fn create_game(
     map: &State<LobbyToGameMap>,
     request: Json<CreateGameRequest>,
